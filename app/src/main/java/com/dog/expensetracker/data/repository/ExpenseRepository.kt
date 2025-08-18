@@ -1,0 +1,31 @@
+package com.dog.expensetracker.data.repository
+
+import com.dog.expensetracker.data.local.Expense
+import com.dog.expensetracker.data.local.ExpenseDao
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+class ExpenseRepository(private val expenseDao: ExpenseDao) {
+
+    // Expose a Flow for reactive updates
+    val allExpenses = expenseDao.getAllExpenses()
+
+    suspend fun insertExpense(expense: Expense) {
+        expenseDao.insertExpense(expense)
+    }
+
+    suspend fun updateExpense(expense: Expense) {
+        expenseDao.updateExpense(expense)
+    }
+
+    suspend fun deleteExpense(expense: Expense) {
+        expenseDao.deleteExpense(expense)
+    }
+
+    // Example: Get total spent (business logic inside repo)
+    fun getTotalSpent(): Flow<Double> {
+        return expenseDao.getAllExpenses().map { list ->
+            list.sumOf { it.amount }
+        }
+    }
+}
