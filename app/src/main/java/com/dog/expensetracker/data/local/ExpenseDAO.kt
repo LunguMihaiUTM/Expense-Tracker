@@ -24,4 +24,5 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
     fun getExpensesByDateRange(startDate: Long, endDate: Long): Flow<List<Expense>>
+    
 }
