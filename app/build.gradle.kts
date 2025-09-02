@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.dog.expensetracker"
-    compileSdk = 36
+    compileSdk = 36               // Latest stable compileSdk
 
     defaultConfig {
         applicationId = "com.dog.expensetracker"
-        minSdk = 24
-        targetSdk = 36
+        minSdk = 26               // Updated minimum SDK (Android 8.0+)
+        targetSdk = 36             // Target latest SDK
         versionCode = 1
         versionName = "1.0"
 
@@ -31,15 +31,28 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.3" // Update to latest Compose compiler
+    }
+
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
@@ -76,5 +89,12 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
+    // animation
+    implementation(libs.androidx.navigation.compose.v280)
+    implementation(libs.androidx.activity.compose.v190)
+
+
+    // icons
+    implementation(libs.androidx.material.icons.extended)
 
 }
