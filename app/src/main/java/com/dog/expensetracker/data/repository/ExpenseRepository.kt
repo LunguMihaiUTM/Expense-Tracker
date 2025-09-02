@@ -3,6 +3,7 @@ package com.dog.expensetracker.data.repository
 import com.dog.expensetracker.data.local.Expense
 import com.dog.expensetracker.data.local.ExpenseDao
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 class ExpenseRepository(private val expenseDao: ExpenseDao) {
@@ -28,4 +29,21 @@ class ExpenseRepository(private val expenseDao: ExpenseDao) {
             list.sumOf { it.amount }
         }
     }
+
+    fun getTotalIncome(): Flow<Double> =
+        expenseDao.getAllExpenses().map { list ->
+            list.filter { !it.isExpense }.sumOf { it.amount }
+        }
+
+    fun getTotalExpense(): Flow<Double> =
+        expenseDao.getAllExpenses().map { list ->
+            list.filter { it.isExpense }.sumOf { it.amount }
+        }
+
+    fun getTotalBalance(): Flow<Double> =
+        combine(getTotalIncome(), getTotalExpense()) { income, expense ->
+            income - expense
+        }
+
+
 }
