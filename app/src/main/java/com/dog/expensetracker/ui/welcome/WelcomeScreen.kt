@@ -31,7 +31,6 @@ import androidx.navigation.compose.rememberNavController
 import com.dog.expensetracker.R
 import com.dog.expensetracker.navigation.Screen
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WelcomeScreen(navController: NavController) {
     Box(
@@ -74,7 +73,7 @@ fun WelcomeScreen(navController: NavController) {
                     text = "Save your money with\nExpense Tracker",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = Color.DarkGray,
                     lineHeight = 38.sp,
                     modifier = Modifier.padding(horizontal = 16.dp),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -110,7 +109,6 @@ fun WelcomeScreen(navController: NavController) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun WelcomeScreenPreview() {

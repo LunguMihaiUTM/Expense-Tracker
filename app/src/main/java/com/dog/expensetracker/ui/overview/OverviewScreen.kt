@@ -235,7 +235,6 @@ private fun LegendItem(label: String, color: Color) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun RecentTransactions() {
     Column {
@@ -322,7 +321,6 @@ private fun OverviewTransactionItem(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun OverviewScreenPreview() {

@@ -38,6 +38,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun deleteExpense(expense: Expense){
+        viewModelScope.launch {
+            repository.deleteExpense(expense)
+        }
+    }
+
     val totalIncome: StateFlow<Double> =
         repository.getTotalIncome().stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
 

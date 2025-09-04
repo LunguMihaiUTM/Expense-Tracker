@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
@@ -32,6 +33,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -95,7 +97,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues) // This is crucial!
                 .padding(horizontal = 30.dp, vertical = 25.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp) // More predictable than SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(40.dp) // More predictable than SpaceBetween
         ) {
             TopBar()
             BalanceCard()
@@ -279,6 +281,8 @@ private fun FinancialIcon(isIncome: Boolean) {
 
 @Composable
 private fun TransactionSection(expenses: List<Expense>) {
+    val homeViewModel: HomeViewModel = hiltViewModel()
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -300,7 +304,6 @@ private fun TransactionSection(expenses: List<Expense>) {
 
         Spacer(Modifier.height(20.dp))
 
-        // Show the latest 5 transactions
         expenses.take(5).forEach { expense ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 TransactionItem(
@@ -308,7 +311,8 @@ private fun TransactionSection(expenses: List<Expense>) {
                     category = expense.category,
                     amount = expense.amount,
                     date = expense.date.toLocalDateCompat(),
-                    isIncome = !expense.isExpense
+                    isIncome = !expense.isExpense,
+                    onDeleteClick = { homeViewModel.deleteExpense(expense) }
                 )
             }
             Spacer(Modifier.height(25.dp))
@@ -317,13 +321,15 @@ private fun TransactionSection(expenses: List<Expense>) {
 }
 
 
+
 @Composable
 private fun TransactionItem(
     name: String,
     category: String,
     amount: Double,
     date: LocalDate,
-    isIncome: Boolean
+    isIncome: Boolean,
+    onDeleteClick: () -> Unit
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -333,7 +339,8 @@ private fun TransactionItem(
             .height(50.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f) // let text take available space
         ) {
             Box(
                 modifier = Modifier
@@ -348,16 +355,15 @@ private fun TransactionItem(
                     imageVector = Icons.Filled.ShoppingCart,
                     contentDescription = "category",
                     tint = Color.Black,
-                    modifier = Modifier
-                        .size(35.dp)
-
+                    modifier = Modifier.size(30.dp)
                 )
             }
 
             Spacer(modifier = Modifier.width(20.dp))
 
             Column(
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier
+                    .fillMaxHeight()
                     .padding(vertical = 4.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -377,16 +383,26 @@ private fun TransactionItem(
             }
         }
 
+        // Amount text
         Text(
             text = (if (isIncome) "+$" else "-$") + amount,
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
-            color = if(isIncome) Color(0xFF2E7D32)  else Color(0xFFC62828)
+            color = if (isIncome) Color(0xFF2E7D32) else Color(0xFFC62828)
         )
 
-
+        // Delete button
+        IconButton(onClick = onDeleteClick) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete transaction",
+                tint = Color.DarkGray,
+                modifier = Modifier.size(22.dp)
+            )
+        }
     }
 }
+
 
 //Bottom bar :
 @Composable
