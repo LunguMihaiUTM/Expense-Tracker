@@ -1,6 +1,7 @@
 package com.dog.expensetracker.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.compose.rememberNavController
 import com.dog.expensetracker.data.local.Expense
+import com.dog.expensetracker.data.local.ExpenseCategory
 import java.util.*
 
 @Composable
@@ -27,6 +29,7 @@ fun AddTransactionDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionDialogContent(
     onDismiss: () -> Unit,
@@ -35,7 +38,8 @@ fun AddTransactionDialogContent(
     var amountText by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var isExpense by remember { mutableStateOf(false) }
-    var category by remember { mutableStateOf("General") }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf(ExpenseCategory.OTHER) } // default category
 
     Card(
         shape = RoundedCornerShape(25.dp),
@@ -55,6 +59,7 @@ fun AddTransactionDialogContent(
                 color = Color.DarkGray
             )
 
+            // Income / Expense toggle
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = { isExpense = false },
@@ -75,6 +80,7 @@ fun AddTransactionDialogContent(
                 ) { Text("Expense") }
             }
 
+            // Amount
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { amountText = it },
@@ -84,6 +90,7 @@ fun AddTransactionDialogContent(
                 placeholder = { Text("0.00") }
             )
 
+            // Note
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -93,16 +100,29 @@ fun AddTransactionDialogContent(
                 placeholder = { Text("Optional") }
             )
 
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Category") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Category dropdown
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = selectedCategory.displayName,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Category") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                CategoryDropdown(
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = { selectedCategory = it }
+                )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -116,7 +136,7 @@ fun AddTransactionDialogContent(
                         val amount = amountText.toDoubleOrNull() ?: 0.0
                         val expense = Expense(
                             amount = amount,
-                            category = category,
+                            category = selectedCategory,
                             isExpense = isExpense,
                             date = System.currentTimeMillis(),
                             note = note.ifBlank { null }
@@ -124,17 +144,16 @@ fun AddTransactionDialogContent(
                         onSave(expense)
                     },
                     shape = RoundedCornerShape(15.dp),
-
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF6C5CE7),
                         contentColor = Color.White
                     )
-
                 ) { Text("Save") }
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -145,3 +164,44 @@ fun AddTransactionDialogContentPreview() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryDropdown(
+    selectedCategory: ExpenseCategory,
+    onCategorySelected: (ExpenseCategory) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            value = selectedCategory.displayName,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Category") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            interactionSource = interactionSource
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            ExpenseCategory.values().forEach { category ->
+                DropdownMenuItem(
+                    text = { Text(category.displayName) },
+                    onClick = {
+                        onCategorySelected(category)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}

@@ -52,4 +52,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     val totalBalance: StateFlow<Double> =
         repository.getTotalBalance().stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
+
+
 }

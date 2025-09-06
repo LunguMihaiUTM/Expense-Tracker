@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -59,9 +58,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.dog.expensetracker.data.local.Expense
+import com.dog.expensetracker.data.local.ExpenseCategory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+
+import com.dog.expensetracker.navigation.Screen
 
 
 
@@ -83,7 +85,7 @@ fun HomeScreen(
                     // Handle navigation here
                     when (tabIndex) {
                         0 -> { /* Navigate to Home */ }
-                        1 -> { /* Navigate to Stats */ }
+                        1 -> { navController.navigate(Screen.OverView.route) }
                         2 -> { /* Navigate to Add Transaction */ }
                         3 -> { /* Navigate to Transactions */ }
                         4 -> { /* Navigate to Profile */ }
@@ -280,7 +282,7 @@ private fun FinancialIcon(isIncome: Boolean) {
 }
 
 @Composable
-private fun TransactionSection(expenses: List<Expense>) {
+fun TransactionSection(expenses: List<Expense>) {
     val homeViewModel: HomeViewModel = hiltViewModel()
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -307,7 +309,7 @@ private fun TransactionSection(expenses: List<Expense>) {
         expenses.take(5).forEach { expense ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 TransactionItem(
-                    name = expense.category,
+                    name = expense.category.displayName,
                     category = expense.category,
                     amount = expense.amount,
                     date = expense.date.toLocalDateCompat(),
@@ -325,7 +327,7 @@ private fun TransactionSection(expenses: List<Expense>) {
 @Composable
 private fun TransactionItem(
     name: String,
-    category: String,
+    category: ExpenseCategory,
     amount: Double,
     date: LocalDate,
     isIncome: Boolean,
@@ -352,8 +354,8 @@ private fun TransactionItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Filled.ShoppingCart,
-                    contentDescription = "category",
+                    imageVector = category.icon,
+                    contentDescription = category.displayName,
                     tint = Color.Black,
                     modifier = Modifier.size(30.dp)
                 )
