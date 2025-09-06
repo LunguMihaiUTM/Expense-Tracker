@@ -24,19 +24,19 @@ fun NavGraph(navController: NavHostController) {
         navController = navController,
         startDestination = Screen.Welcome.route,
 
-        // Default transition for ALL screens
-        enterTransition = {
-            slideInHorizontally(initialOffsetX = { it })
-        },
-        exitTransition = {
-            slideOutHorizontally(targetOffsetX = { -it })
-        },
-        popEnterTransition = {
-            slideInHorizontally(initialOffsetX = { -it })
-        },
-        popExitTransition = {
-            slideOutHorizontally(targetOffsetX = { it })
-        }
+//        // Default transition for ALL screens
+//        enterTransition = {
+//            slideInHorizontally(initialOffsetX = { it })
+//        },
+//        exitTransition = {
+//            slideOutHorizontally(targetOffsetX = { -it })
+//        },
+//        popEnterTransition = {
+//            slideInHorizontally(initialOffsetX = { -it })
+//        },
+//        popExitTransition = {
+//            slideOutHorizontally(targetOffsetX = { it })
+//        }
     ) {
         composable(Screen.Welcome.route) {
             WelcomeScreen(navController)
