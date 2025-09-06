@@ -8,7 +8,7 @@ import java.time.LocalDate
 class Expense(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val amount: Double,
-    val category: String,
+    val category: ExpenseCategory,
     val isExpense: Boolean,
     val date: Long,
     val note: String? = null
