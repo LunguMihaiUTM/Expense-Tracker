@@ -1,6 +1,7 @@
 package com.dog.expensetracker.data.repository
 
 import com.dog.expensetracker.data.local.Expense
+import com.dog.expensetracker.data.local.ExpenseCategory
 import com.dog.expensetracker.data.local.ExpenseDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -44,6 +45,31 @@ class ExpenseRepository(private val expenseDao: ExpenseDao) {
         combine(getTotalIncome(), getTotalExpense()) { income, expense ->
             income - expense
         }
+
+    fun getTotalExpensesByCategoryAndPeriod(
+        category: ExpenseCategory,
+        startDate: Long,
+        endDate: Long
+    ) : Flow<Double> =
+        expenseDao.getExpensesByCategoryAndPeriod(category, startDate, endDate).map {list ->
+            list.filter { it.isExpense }.sumOf { it.amount }
+        }
+
+
+    fun getExpensesTotalsByCategoryAndPeriod(
+        startDate: Long,
+        endDate: Long
+    ): Flow<Map<ExpenseCategory, Double>> {
+        // Map each category to its total expense
+        return combine(
+            ExpenseCategory.entries.map { category ->
+                getTotalExpensesByCategoryAndPeriod(category, startDate, endDate)
+                    .map { total -> category to total }
+            }
+        ) { array ->
+            array.associate { it }
+        }
+    }
 
 
 }
