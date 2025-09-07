@@ -13,13 +13,11 @@ import androidx.navigation.compose.rememberNavController
 import com.dog.expensetracker.data.local.ExpenseDatabase
 import com.dog.expensetracker.data.repository.ExpenseRepository
 import com.dog.expensetracker.navigation.NavGraph
-import com.dog.expensetracker.ui.Screen
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -28,7 +26,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 
 fun ExpenseTrackerNavHost() {
