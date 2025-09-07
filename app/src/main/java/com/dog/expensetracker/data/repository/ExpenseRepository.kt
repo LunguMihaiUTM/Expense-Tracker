@@ -5,6 +5,8 @@ import com.dog.expensetracker.data.local.ExpenseCategory
 import com.dog.expensetracker.data.local.ExpenseDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 
 class ExpenseRepository(private val expenseDao: ExpenseDao) {
@@ -50,8 +52,8 @@ class ExpenseRepository(private val expenseDao: ExpenseDao) {
         category: ExpenseCategory,
         startDate: Long,
         endDate: Long
-    ) : Flow<Double> =
-        expenseDao.getExpensesByCategoryAndPeriod(category, startDate, endDate).map {list ->
+    ): Flow<Double> =
+        expenseDao.getExpensesByCategoryAndPeriod(category, startDate, endDate).map { list ->
             list.filter { it.isExpense }.sumOf { it.amount }
         }
 
@@ -70,6 +72,14 @@ class ExpenseRepository(private val expenseDao: ExpenseDao) {
             array.associate { it }
         }
     }
+
+    fun getDistinctCategoriesFromExpenses(
+    ): Flow<List<ExpenseCategory>> =
+        expenseDao.getAllExpenses().map{list ->
+            list.map { it.category }
+                .distinct()
+                .sortedBy { it.name }
+        }
 
 
 }
