@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,32 +17,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -57,14 +43,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.dog.expensetracker.data.local.Expense
 import com.dog.expensetracker.data.local.ExpenseCategory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
 import com.dog.expensetracker.navigation.Screen
-
+import com.dog.expensetracker.ui.common.CustomBottomNavigationBar
+import com.dog.expensetracker.ui.common.TransactionSection
 
 
 @Composable
@@ -98,12 +84,12 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues) // This is crucial!
-                .padding(horizontal = 30.dp, vertical = 25.dp),
+                .padding(horizontal = 20.dp, vertical = 15.dp),
             verticalArrangement = Arrangement.spacedBy(40.dp) // More predictable than SpaceBetween
         ) {
             TopBar()
             BalanceCard()
-            TransactionSection(expenses = expenses)
+            TransactionSection(expenses = expenses, 5)
         }
     }
 }
@@ -116,7 +102,7 @@ private fun TopBar() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.Apps,
+            imageVector = Icons.Default.Menu,
             contentDescription = "Settings"
         )
 
@@ -280,251 +266,6 @@ private fun FinancialIcon(isIncome: Boolean) {
         )
     }
 }
-
-@Composable
-fun TransactionSection(expenses: List<Expense>) {
-    val homeViewModel: HomeViewModel = hiltViewModel()
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "Transactions",
-                fontSize = 21.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.DarkGray
-            )
-            Text(
-                text = "See All",
-                fontSize = 17.sp,
-                color = Color.DarkGray
-            )
-        }
-
-        Spacer(Modifier.height(20.dp))
-
-        expenses.take(5).forEach { expense ->
-            Row(modifier = Modifier.fillMaxWidth()) {
-                TransactionItem(
-                    name = expense.category.displayName,
-                    category = expense.category,
-                    amount = expense.amount,
-                    date = expense.date.toLocalDateCompat(),
-                    isIncome = !expense.isExpense,
-                    onDeleteClick = { homeViewModel.deleteExpense(expense) }
-                )
-            }
-            Spacer(Modifier.height(25.dp))
-        }
-    }
-}
-
-
-
-@Composable
-private fun TransactionItem(
-    name: String,
-    category: ExpenseCategory,
-    amount: Double,
-    date: LocalDate,
-    isIncome: Boolean,
-    onDeleteClick: () -> Unit
-) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f) // let text take available space
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(
-                        color = Color.Gray.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = category.icon,
-                    contentDescription = category.displayName,
-                    tint = Color.Black,
-                    modifier = Modifier.size(30.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(20.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 4.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = name,
-                    fontSize = 18.sp,
-                    color = Color.DarkGray,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Text(
-                    text = date.toString(),
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-
-        // Amount text
-        Text(
-            text = (if (isIncome) "+$" else "-$") + amount,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (isIncome) Color(0xFF2E7D32) else Color(0xFFC62828)
-        )
-
-        // Delete button
-        IconButton(onClick = onDeleteClick) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete transaction",
-                tint = Color.DarkGray,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-    }
-}
-
-
-//Bottom bar :
-@Composable
-fun CustomBottomNavigationBar(
-    homeViewModel: HomeViewModel,
-    selectedTab: Int = 0,
-    onTabSelected: (Int) -> Unit = {}
-) {
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // Bottom Navigation Bar
-        NavigationBar(
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = Color.White,
-            tonalElevation = 8.dp
-        ) {
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "Home",
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                selected = selectedTab == 0,
-                onClick = { onTabSelected(0) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF6C5CE7),
-                    unselectedIconColor = Color.Gray,
-                    indicatorColor = Color.Transparent
-                )
-            )
-
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.BarChart,
-                        contentDescription = "Stats",
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                selected = selectedTab == 1,
-                onClick = { onTabSelected(1) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF6C5CE7),
-                    unselectedIconColor = Color.Gray,
-                    indicatorColor = Color.Transparent
-                )
-            )
-
-            // Empty space for FAB
-            NavigationBarItem(
-                icon = { Spacer(modifier = Modifier.size(24.dp)) },
-                selected = false,
-                onClick = { },
-                enabled = false
-            )
-
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.AccountBalanceWallet,
-                        contentDescription = "Transactions",
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                selected = selectedTab == 3,
-                onClick = { onTabSelected(3) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF6C5CE7),
-                    unselectedIconColor = Color.Gray,
-                    indicatorColor = Color.Transparent
-                )
-            )
-
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = "Profile",
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                selected = selectedTab == 4,
-                onClick = { onTabSelected(4) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF6C5CE7),
-                    unselectedIconColor = Color.Gray,
-                    indicatorColor = Color.Transparent
-                )
-            )
-        }
-
-        var showDialog by remember { mutableStateOf(false) }
-
-        FloatingActionButton(
-            onClick = { showDialog = true },
-            modifier = Modifier
-                .align(Alignment.Center)
-                .offset(y = (-12).dp),
-            containerColor = Color(0xFF6C5CE7),
-            contentColor = Color.White,
-            elevation = FloatingActionButtonDefaults.elevation(8.dp)
-        ) {
-            Icon(imageVector = Icons.Default.Add, contentDescription = "Add Transaction")
-        }
-
-        if (showDialog) {
-            AddTransactionDialog(
-                onDismiss = { showDialog = false },
-                onSave = { expense ->
-                    homeViewModel.addExpense(expense)  // <-- Save to DB
-                    showDialog = false
-                }
-            )
-        }
-    }
-}
-
 
 
 @Preview(showBackground = true)
