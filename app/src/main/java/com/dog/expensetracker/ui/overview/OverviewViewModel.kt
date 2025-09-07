@@ -42,6 +42,16 @@ class OverviewViewModel(application: Application) : AndroidViewModel(application
             repository.getExpensesTotalsByCategoryAndPeriod(startDate, endDate)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
 
+
+    val distinctCategories: StateFlow<List<ExpenseCategory>> =
+        repository.getDistinctCategoriesFromExpenses()
+            .stateIn(
+                scope = viewModelScope,       // usually inside a ViewModel
+                started = SharingStarted.Lazily,
+                initialValue = emptyList()    // initial value for StateFlow
+            )
+
+
     init {
         loadExpenses()
     }

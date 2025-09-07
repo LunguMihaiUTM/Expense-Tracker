@@ -2,6 +2,7 @@ package com.dog.expensetracker.ui.overview
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -34,20 +38,27 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.dog.expensetracker.data.local.ExpenseCategory
 import com.dog.expensetracker.navigation.Screen
-import com.dog.expensetracker.ui.home.CustomBottomNavigationBar
+import com.dog.expensetracker.ui.common.CustomBottomNavigationBar
+import com.dog.expensetracker.ui.common.TransactionSection
 import com.dog.expensetracker.ui.home.HomeViewModel
-import com.dog.expensetracker.ui.home.TransactionSection
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Composable
 fun OverviewScreen(navController: NavController) {
@@ -67,11 +78,21 @@ fun OverviewScreen(navController: NavController) {
                 onTabSelected = { tabIndex ->
                     // Handle navigation here
                     when (tabIndex) {
-                        0 -> { navController.navigate(Screen.Home.route) }
-                        1 -> { /* Navigate to Stats */ }
-                        2 -> { /* Navigate to Add Transaction */ }
-                        3 -> { /* Navigate to Transactions */ }
-                        4 -> { /* Navigate to Profile */ }
+                        0 -> {
+                            navController.navigate(Screen.Home.route)
+                        }
+
+                        1 -> { /* Navigate to Stats */
+                        }
+
+                        2 -> { /* Navigate to Add Transaction */
+                        }
+
+                        3 -> { /* Navigate to Transactions */
+                        }
+
+                        4 -> { /* Navigate to Profile */
+                        }
                     }
                 }
             )
@@ -81,7 +102,7 @@ fun OverviewScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = 15.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             OverviewTopBar()
@@ -89,12 +110,12 @@ fun OverviewScreen(navController: NavController) {
             StatisticsChart()
 
             ExpensePieChart(
-                totalsByCategory =  totalsByCategory,
+                totalsByCategory = totalsByCategory,
                 chartSize = 150.dp,
-                ringThickness = 30.dp
+                ringThickness = 20.dp
             )
 
-            TransactionSection(expenses = expenses)
+            TransactionSection(expenses = expenses, -1)
 
 
         }
@@ -128,6 +149,9 @@ private fun OverviewTopBar() {
 
 @Composable
 private fun OverviewSummaryCards() {
+    val homeViewModel: HomeViewModel = hiltViewModel()
+    val income by homeViewModel.totalIncome.collectAsState()
+    val expense by homeViewModel.totalExpense.collectAsState()
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -135,7 +159,7 @@ private fun OverviewSummaryCards() {
         SummaryCard(
             modifier = Modifier.weight(1f),
             title = "Total Income",
-            amount = "$8,500",
+            amount = income.toString(),
             backgroundColor = Color(0xFFE8E4FF),
             accentColor = Color(0xFF6C5CE7)
         )
@@ -143,7 +167,7 @@ private fun OverviewSummaryCards() {
         SummaryCard(
             modifier = Modifier.weight(1f),
             title = "Total Expenses",
-            amount = "$3,800",
+            amount = expense.toString(),
             backgroundColor = Color(0xFFFFE8E4),
             accentColor = Color(0xFFFF6B47)
         )
@@ -240,203 +264,43 @@ private fun StatisticsChart() {
 }
 
 
-@Composable
-private fun LegendItem(label: String, color: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .background(color, RoundedCornerShape(2.dp))
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            color = Color.Gray,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun OverviewScreenPreview() {
+//    OverviewScreen(rememberNavController())
+//}
 
-@Composable
-private fun RecentTransactions() {
-    Column {
-
-        OverviewTransactionItem(
-            icon = Icons.Default.ShoppingCart,
-            name = "Shopping",
-            date = "30 Apr 2022",
-            amount = "1550",
-            isIncome = true,
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OverviewTransactionItem(
-            icon = Icons.Default.ShoppingCart,
-            name = "Laptop",
-            date = "30 Apr 2022",
-            amount = "1200",
-            isIncome = false,
-        )
-    }
-}
-
-@Composable
-private fun OverviewTransactionItem(
-    icon: ImageVector,
-    name: String,
-    date: String,
-    amount: String,
-    isIncome: Boolean,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = Color.Gray.copy(alpha = 0.2f),
-                        RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = name,
-                    modifier = Modifier.size(24.dp),
-                    tint = Color.Gray
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(
-                    text = name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                )
-                if (date.isNotEmpty()) {
-                    Text(
-                        text = date,
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                }
-            }
-        }
-
-        Text(
-            text = (if (isIncome) "+$" else "-$") + amount,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (isIncome) Color(0xFF2E7D32) else Color(0xFFC62828)
-        )
-
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun OverviewScreenPreview() {
-    OverviewScreen(rememberNavController())
-}
-
-
-@Composable
-fun _PieChart(
-    slices: List<Float>,
-    colors: List<Color>,
-    chartSize: Dp = 150.dp,
-    ringThickness: Dp = 30.dp,   // thickness of the ring (instead of strokeWidth)
-    startAngleOffset: Float = -90f
-) {
-    val safeSlices = slices.map { if (it.isFinite() && it > 0f) it else 0f }
-    val total = safeSlices.sum()
-
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.size(chartSize)) {
-            val diameter = min(size.width, size.height)
-            val radius = diameter / 2f
-            val center = Offset(size.width / 2f, size.height / 2f)
-
-            val strokePx = ringThickness.toPx()
-            val adjustedRadius = radius - strokePx / 2
-            val topLeft = Offset(center.x - adjustedRadius, center.y - adjustedRadius)
-            val arcSize = Size(adjustedRadius * 2, adjustedRadius * 2)
-
-
-            if (total <= 0f) {
-                drawCircle(
-                    color = Color.LightGray,
-                    radius = radius - ringThickness.toPx() / 2,
-                    center = center,
-                    style = Stroke(width = ringThickness.toPx())
-                )
-                return@Canvas
-            }
-
-            var startAngle = startAngleOffset
-            for (i in safeSlices.indices) {
-                val value = safeSlices[i]
-                if (value <= 0f) continue
-
-                val sweep = (value / total) * 360f
-                val color = colors.getOrElse(i) { Color.Gray }
-
-                drawArc(
-                    color = color,
-                    startAngle = startAngle,
-                    sweepAngle = sweep,
-                    useCenter = false,
-                    topLeft = topLeft,
-                    size = arcSize,
-                    style = Stroke(width = strokePx)
-                )
-
-
-                startAngle += sweep
-            }
-        }
-    }
-}
 
 @Composable
 fun ExpensePieChart(
     totalsByCategory: Map<ExpenseCategory, Double>,
-    chartSize: Dp = 150.dp,
-    ringThickness: Dp = 30.dp
+    chartSize: Dp,
+    ringThickness: Dp
 ) {
     val slices = totalsByCategory.values.map { it.toFloat() }
     val colors = totalsByCategory.keys.map { it.color }
 
-    PieChart(
-        slices = slices,
-        colors = colors,
-        chartSize = chartSize,
-        ringThickness = ringThickness
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+        ) {
+        ExpenseChartLegend()
+
+        PieChart(
+            slices = slices,
+            colors = colors,
+            chartSize = chartSize,
+            ringThickness = ringThickness
+        )
+    }
 }
 
 @Composable
 fun PieChart(
     slices: List<Float>,
     colors: List<Color>,
-    chartSize: Dp = 150.dp,
-    ringThickness: Dp = 30.dp,   // thickness of the ring (instead of strokeWidth)
+    chartSize: Dp,
+    ringThickness: Dp,   // thickness of the ring (instead of strokeWidth)
     startAngleOffset: Float = -90f
 ) {
     val safeSlices = slices.map { if (it.isFinite() && it > 0f) it else 0f }
@@ -485,9 +349,181 @@ fun PieChart(
                     style = Stroke(width = strokePx)
                 )
 
-
                 startAngle += sweep
             }
         }
     }
 }
+
+
+//Working, but need to analyze before use
+
+//@Composable
+//fun PieChart(
+//    slices: List<Float>,
+//    colors: List<Color>,
+//    chartSize: Dp,
+//    ringThickness: Dp,
+//    expandedThickness: Dp = 30.dp, // thickness when clicked
+//    startAngleOffset: Float = -90f,
+//    onSliceClick: ((index: Int) -> Unit)? = null // callback when a slice is clicked
+//) {
+//    val safeSlices = slices.map { if (it.isFinite() && it > 0f) it else 0f }
+//    val total = safeSlices.sum()
+//
+//    var selectedIndex by remember { mutableStateOf(-1) }
+//
+//    Box(
+//        modifier = Modifier.fillMaxWidth(),
+//        contentAlignment = androidx.compose.ui.Alignment.Center
+//    ) {
+//        Canvas(
+//            modifier = Modifier
+//                .size(chartSize)
+//                .pointerInput(true) {
+//                    detectTapGestures { tapOffset ->
+//                        val center = Offset(size.width / 2f, size.height / 2f)
+//                        val dx = tapOffset.x - center.x
+//                        val dy = tapOffset.y - center.y // Don't invert Y here
+//                        val touchRadius = sqrt(dx * dx + dy * dy)
+//
+//                        val radius = min(size.width, size.height) / 2f
+//                        val maxThickness = max(ringThickness.toPx(), expandedThickness.toPx())
+//                        val outerRadius = radius - maxThickness / 2f + maxThickness
+//                        val innerRadius = radius - maxThickness / 2f
+//
+//                        // Check if touch is within the ring area
+//                        if (touchRadius in innerRadius..outerRadius) {
+//                            // Calculate angle correctly
+//                            var touchAngle = atan2(dy, dx).toDegrees()
+//                            if (touchAngle < 0) touchAngle += 360f
+//
+//                            // Adjust for start angle offset
+//                            touchAngle = (touchAngle - startAngleOffset + 360f) % 360f
+//
+//                            var currentAngle = 0f
+//                            var foundSlice = false
+//
+//                            safeSlices.forEachIndexed { index, value ->
+//                                if (value <= 0f) return@forEachIndexed
+//
+//                                val sweep = (value / total) * 360f
+//
+//                                if (touchAngle >= currentAngle && touchAngle <= currentAngle + sweep && !foundSlice) {
+//                                    selectedIndex = index
+//                                    onSliceClick?.invoke(index)
+//                                    foundSlice = true
+//                                }
+//
+//                                currentAngle += sweep
+//                            }
+//                        }
+//                    }
+//                }
+//        ) {
+//            val diameter = min(size.width, size.height)
+//            val radius = diameter / 2f
+//            val center = Offset(size.width / 2f, size.height / 2f)
+//
+//            if (total <= 0f) {
+//                drawCircle(
+//                    color = Color.LightGray,
+//                    radius = radius - ringThickness.toPx() / 2,
+//                    center = center,
+//                    style = Stroke(width = ringThickness.toPx())
+//                )
+//                return@Canvas
+//            }
+//
+//            var startAngle = startAngleOffset
+//            safeSlices.forEachIndexed { i, value ->
+//                if (value <= 0f) return@forEachIndexed
+//
+//                val sweep = (value / total) * 360f
+//                val color = colors.getOrElse(i) { Color.Gray }
+//
+//                // Calculate radius for outward expansion
+//                val thickness = if (i == selectedIndex) {
+//                    expandedThickness.toPx()
+//                } else {
+//                    ringThickness.toPx()
+//                }
+//
+//                // For expanded slices, move the center outward so expansion goes outward
+//                val baseRadius = radius - ringThickness.toPx() / 2
+//                val adjustedRadius = if (i == selectedIndex) {
+//                    baseRadius + (expandedThickness.toPx() - ringThickness.toPx()) / 2
+//                } else {
+//                    baseRadius
+//                }
+//
+//                val topLeft = Offset(center.x - adjustedRadius, center.y - adjustedRadius)
+//                val arcSize = Size(adjustedRadius * 2, adjustedRadius * 2)
+//
+//                drawArc(
+//                    color = color,
+//                    startAngle = startAngle,
+//                    sweepAngle = sweep,
+//                    useCenter = false,
+//                    topLeft = topLeft,
+//                    size = arcSize,
+//                    style = Stroke(width = thickness)
+//                )
+//
+//                startAngle += sweep
+//            }
+//        }
+//    }
+//}
+
+// helper function: convert radians to degrees
+fun Float.toDegrees() = this * 180f / PI.toFloat()
+
+
+@Composable
+fun ExpenseChartLegend() {
+
+    val overviewViewModel: OverviewViewModel = hiltViewModel()
+
+    val categories by overviewViewModel.distinctCategories.collectAsState()
+
+    Column {
+        for (category in categories) {
+
+            Spacer(Modifier.height(7.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(
+                            shape = CircleShape,
+                            color = category.color
+                        )
+                )
+
+                Spacer(Modifier.width(7.dp))
+
+                Text(
+                    text = category.displayName,
+                    color = Color.DarkGray,
+                    fontSize = 11.sp
+                )
+
+
+            }
+        }
+
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun ExpenseChartLegendPreview() {
+    ExpenseChartLegend()
+}
+
+
