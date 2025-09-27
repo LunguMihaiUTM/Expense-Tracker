@@ -26,20 +26,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.dog.expensetracker.data.local.Expense
 import com.dog.expensetracker.data.local.ExpenseCategory
-import com.dog.expensetracker.ui.home.HomeViewModel
-import com.dog.expensetracker.ui.home.toLocalDateCompat
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 
 //To see all transaction pass -1 to numOfTransaction
 @Composable
-fun TransactionSection(expenses: List<Expense>, numOfTransaction: Int) {
-    val homeViewModel: HomeViewModel = hiltViewModel()
+fun TransactionSection(
+    expenses: List<Expense>,
+    numOfTransaction: Int,
+    onDeleteClick: (Expense) -> Unit
+) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -87,8 +88,7 @@ fun TransactionSection(expenses: List<Expense>, numOfTransaction: Int) {
                     amount = expense.amount,
                     date = expense.date.toLocalDateCompat(),
                     isIncome = !expense.isExpense,
-                    onDeleteClick = { homeViewModel.deleteExpense(expense)
-                    }
+                    onDeleteClick = { onDeleteClick(expense) }
                 )
             }
         }
@@ -178,13 +178,18 @@ fun TransactionItem(
     }
 }
 
+fun Long.toLocalDateCompat(): LocalDate =
+    Instant.ofEpochMilli(this)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
 
 
-@Preview(showBackground = true)
-@Composable
-fun TransactionSectionPreview() {
-    val expense = Expense(20, 450.0, ExpenseCategory.ENTERTAINMENT, true, 121412341, null)
-    val expenseList : MutableList<Expense> = mutableListOf()
-    expenseList.add(expense)
-    TransactionSection(expenseList, -1)
-}
+
+//@Preview(showBackground = true)
+//@Composable
+//fun TransactionSectionPreview() {
+//    val expense = Expense(20, 450.0, ExpenseCategory.ENTERTAINMENT, true, 121412341, null)
+//    val expenseList : MutableList<Expense> = mutableListOf()
+//    expenseList.add(expense)
+//    TransactionSection(expenseList, -1, null)
+//}

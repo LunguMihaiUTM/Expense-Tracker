@@ -1,8 +1,7 @@
-package com.dog.expensetracker.ui.overview
+package com.dog.expensetracker.features.overview
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,83 +18,42 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.times
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavHostController
 import com.dog.expensetracker.data.local.ExpenseCategory
-import com.dog.expensetracker.navigation.Screen
+import com.dog.expensetracker.features.home.HomeContract
 import com.dog.expensetracker.ui.common.CustomBottomNavigationBar
 import com.dog.expensetracker.ui.common.TransactionSection
-import com.dog.expensetracker.ui.home.HomeViewModel
 import kotlin.math.PI
-import kotlin.math.atan2
-import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.sqrt
+
 
 @Composable
-fun OverviewScreen(navController: NavController) {
-    val homeViewModel: HomeViewModel = hiltViewModel() // get ViewModel from Hilt
-
-    val overviewViewModel: OverviewViewModel = hiltViewModel()
-
-    val expenses by homeViewModel.expenses.collectAsState() // collect Flow as State
-
-    val totalsByCategory by overviewViewModel.totalsFlow.collectAsState()
-
+fun OverviewScreen(
+    state: OverviewContract.State,
+    onEvent: (OverviewContract.Event) -> Unit,
+    navController: NavHostController
+) {
     Scaffold(
         bottomBar = {
-            CustomBottomNavigationBar(
-                homeViewModel = homeViewModel,
-                selectedTab = 1, // Overview/Stats is selected
-                onTabSelected = { tabIndex ->
-                    // Handle navigation here
-                    when (tabIndex) {
-                        0 -> {
-                            navController.navigate(Screen.Home.route)
-                        }
+            CustomBottomNavigationBar {
 
-                        1 -> { /* Navigate to Stats */
-                        }
-
-                        2 -> { /* Navigate to Add Transaction */
-                        }
-
-                        3 -> { /* Navigate to Transactions */
-                        }
-
-                        4 -> { /* Navigate to Profile */
-                        }
-                    }
-                }
-            )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -106,21 +64,27 @@ fun OverviewScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             OverviewTopBar()
-            OverviewSummaryCards()
-            StatisticsChart()
+            OverviewSummaryCards(state)
 
             ExpensePieChart(
-                totalsByCategory = totalsByCategory,
+                totalsByCategory = state.totalsByCategory,
                 chartSize = 150.dp,
-                ringThickness = 20.dp
+                ringThickness = 20.dp,
+                state = state
             )
 
-            TransactionSection(expenses = expenses, -1)
-
-
+            TransactionSection(
+                expenses = state.expenses,
+                numOfTransaction = -1,
+                onDeleteClick = { expense ->
+                    onEvent(OverviewContract.Event.DeleteExpense(expense))
+                }
+            )
         }
     }
 }
+
+
 
 @Composable
 private fun OverviewTopBar() {
@@ -148,10 +112,7 @@ private fun OverviewTopBar() {
 }
 
 @Composable
-private fun OverviewSummaryCards() {
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val income by homeViewModel.totalIncome.collectAsState()
-    val expense by homeViewModel.totalExpense.collectAsState()
+private fun OverviewSummaryCards(state: OverviewContract.State) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -159,7 +120,7 @@ private fun OverviewSummaryCards() {
         SummaryCard(
             modifier = Modifier.weight(1f),
             title = "Total Income",
-            amount = income.toString(),
+            amount = state.totalIncome.toString(),
             backgroundColor = Color(0xFFE8E4FF),
             accentColor = Color(0xFF6C5CE7)
         )
@@ -167,12 +128,13 @@ private fun OverviewSummaryCards() {
         SummaryCard(
             modifier = Modifier.weight(1f),
             title = "Total Expenses",
-            amount = expense.toString(),
+            amount = state.totalExpense.toString(),
             backgroundColor = Color(0xFFFFE8E4),
             accentColor = Color(0xFFFF6B47)
         )
     }
 }
+
 
 @Composable
 private fun SummaryCard(
@@ -275,7 +237,8 @@ private fun StatisticsChart() {
 fun ExpensePieChart(
     totalsByCategory: Map<ExpenseCategory, Double>,
     chartSize: Dp,
-    ringThickness: Dp
+    ringThickness: Dp,
+    state: OverviewContract.State
 ) {
     val slices = totalsByCategory.values.map { it.toFloat() }
     val colors = totalsByCategory.keys.map { it.color }
@@ -283,8 +246,8 @@ fun ExpensePieChart(
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
-        ) {
-        ExpenseChartLegend()
+    ) {
+        ExpenseChartLegend(categories = state.distinctCategories)
 
         PieChart(
             slices = slices,
@@ -481,15 +444,11 @@ fun Float.toDegrees() = this * 180f / PI.toFloat()
 
 
 @Composable
-fun ExpenseChartLegend() {
-
-    val overviewViewModel: OverviewViewModel = hiltViewModel()
-
-    val categories by overviewViewModel.distinctCategories.collectAsState()
-
+fun ExpenseChartLegend(
+    categories: List<ExpenseCategory>
+) {
     Column {
         for (category in categories) {
-
             Spacer(Modifier.height(7.dp))
 
             Row(
@@ -511,19 +470,17 @@ fun ExpenseChartLegend() {
                     color = Color.DarkGray,
                     fontSize = 11.sp
                 )
-
-
             }
         }
-
     }
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun ExpenseChartLegendPreview() {
-    ExpenseChartLegend()
-}
+
+//@Preview(showBackground = true)
+//@Composable
+//fun ExpenseChartLegendPreview() {
+//    ExpenseChartLegend()
+//}
 
 

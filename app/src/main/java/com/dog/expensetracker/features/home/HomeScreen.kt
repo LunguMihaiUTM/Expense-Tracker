@@ -1,4 +1,4 @@
-package com.dog.expensetracker.ui.home
+package com.dog.expensetracker.features.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,19 +16,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -37,60 +32,91 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.dog.expensetracker.data.local.ExpenseCategory
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-
-import com.dog.expensetracker.navigation.Screen
 import com.dog.expensetracker.ui.common.CustomBottomNavigationBar
 import com.dog.expensetracker.ui.common.TransactionSection
 
 
 @Composable
 fun HomeScreen(
-    navController: NavController
+    state: HomeContract.State,
+    onEvent: (HomeContract.Event) -> Unit
 ) {
-    val homeViewModel: HomeViewModel = hiltViewModel() // get ViewModel from Hilt
-
-    val expenses by homeViewModel.expenses.collectAsState() // collect Flow as State
-
-
     Scaffold(
         bottomBar = {
-            CustomBottomNavigationBar(
-                homeViewModel,
-                selectedTab = 0, // Home is selected
-                onTabSelected = { tabIndex ->
-                    // Handle navigation here
-                    when (tabIndex) {
-                        0 -> { /* Navigate to Home */ }
-                        1 -> { navController.navigate(Screen.OverView.route) }
-                        2 -> { /* Navigate to Add Transaction */ }
-                        3 -> { /* Navigate to Transactions */ }
-                        4 -> { /* Navigate to Profile */ }
-                    }
-                }
+            CustomBottomNavigationBar (
+                onEvent = onEvent
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // This is crucial!
+                .padding(paddingValues)
                 .padding(horizontal = 20.dp, vertical = 15.dp),
-            verticalArrangement = Arrangement.spacedBy(40.dp) // More predictable than SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(40.dp)
         ) {
             TopBar()
-            BalanceCard()
-            TransactionSection(expenses = expenses, 5)
+            BalanceCard(state)
+            TransactionSection(
+                expenses = state.expenses,
+                numOfTransaction = 5,
+                onDeleteClick = {expense ->
+                    onEvent(HomeContract.Event.DeleteExpense(expense))
+                })
         }
+    }
+}
+
+@Composable
+private fun BalanceHeader(state: HomeContract.State) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column {
+            Text(
+                text = "Total Balance",
+                fontSize = 17.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = state.totalBalance.toString(),
+                fontSize = 25.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+        }
+
+        Icon(
+            imageVector = Icons.Default.MoreVert,
+            contentDescription = "More options",
+            tint = Color.White
+        )
+    }
+}
+
+@Composable
+private fun IncomeExpenseRow(state: HomeContract.State) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        FinancialItem(
+            label = "Income",
+            amount = state.totalIncome.toString(),
+            isIncome = true
+        )
+
+        FinancialItem(
+            label = "Expenses",
+            amount = state.totalExpense.toString(),
+            isIncome = false
+        )
     }
 }
 
@@ -121,8 +147,7 @@ private fun TopBar() {
 }
 
 @Composable
-private fun BalanceCard(
-) {
+private fun BalanceCard(state: HomeContract.State) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,67 +175,10 @@ private fun BalanceCard(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                BalanceHeader()
-                IncomeExpenseRow()
+                BalanceHeader(state)
+                IncomeExpenseRow(state)
             }
         }
-    }
-}
-
-@Composable
-private fun BalanceHeader() {
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val balance by homeViewModel.totalBalance.collectAsState()
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
-    ) {
-        Column {
-            Text(
-                text = "Total Balance",
-                fontSize = 17.5.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = balance.toString(),
-                fontSize = 25.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-        }
-
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = "More options",
-            tint = Color.White
-        )
-    }
-}
-
-@Composable
-private fun IncomeExpenseRow() {
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val income by homeViewModel.totalIncome.collectAsState()
-    val expense by homeViewModel.totalExpense.collectAsState()
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        FinancialItem(
-            label = "Income",
-            amount = income.toString(),
-            isIncome = true
-        )
-
-        FinancialItem(
-            label = "Expenses",
-            amount = expense.toString(),
-            isIncome = false
-        )
     }
 }
 
@@ -267,16 +235,3 @@ private fun FinancialIcon(isIncome: Boolean) {
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    val navController = rememberNavController()
-    HomeScreen(navController = navController)
-}
-
-
-fun Long.toLocalDateCompat(): LocalDate =
-    Instant.ofEpochMilli(this)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
