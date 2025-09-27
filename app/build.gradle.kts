@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
+    kotlin("plugin.serialization")
 }
 
 
@@ -76,6 +77,8 @@ dependencies {
 
     //Navigation
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.compose.v295) // or latest stable
+    implementation(libs.kotlinx.serialization.json)
 
     // Room components
     implementation(libs.androidx.room.runtime)
@@ -96,5 +99,7 @@ dependencies {
 
     // icons
     implementation(libs.androidx.material.icons.extended)
+
+
 
 }
