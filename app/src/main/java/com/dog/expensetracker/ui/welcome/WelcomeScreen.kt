@@ -1,7 +1,5 @@
 package com.dog.expensetracker.ui.welcome
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,16 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.dog.expensetracker.R
-import com.dog.expensetracker.navigation.Screen
+import com.dog.expensetracker.navigation.LocalRootNavigator
+import com.dog.expensetracker.navigation.RootNavDestinations
 
 @Composable
-fun WelcomeScreen(navController: NavController) {
+fun WelcomeScreen() {
+    val navController = LocalRootNavigator.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -95,7 +93,7 @@ fun WelcomeScreen(navController: NavController) {
             // Button
             Button(
                 onClick = {
-                    navController.navigate(Screen.Home.route)
+                    navController.navigate(RootNavDestinations.Home)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B61FF)), // Purple button
                 shape = RoundedCornerShape(25.dp),
@@ -108,9 +106,9 @@ fun WelcomeScreen(navController: NavController) {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun WelcomeScreenPreview() {
-    WelcomeScreen(rememberNavController())
-}
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun WelcomeScreenPreview() {
+//    WelcomeScreen(rememberNavController())
+//}

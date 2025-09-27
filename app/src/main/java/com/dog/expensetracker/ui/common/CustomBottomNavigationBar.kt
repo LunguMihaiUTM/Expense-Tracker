@@ -24,19 +24,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.dog.expensetracker.ui.home.AddTransactionDialog
-import com.dog.expensetracker.ui.home.HomeViewModel
+import com.dog.expensetracker.features.home.HomeContract
+import com.dog.expensetracker.navigation.LocalRootNavigator
+import com.dog.expensetracker.navigation.RootNavDestinations
 
 
 @Composable
 fun CustomBottomNavigationBar(
-    homeViewModel: HomeViewModel,
     selectedTab: Int = 0,
-    onTabSelected: (Int) -> Unit = {}
+    onTabSelected: (Int) -> Unit = {},
+    onEvent: (HomeContract.Event) -> Unit
 ) {
+    val navController = LocalRootNavigator.current
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -55,7 +56,7 @@ fun CustomBottomNavigationBar(
                     )
                 },
                 selected = selectedTab == 0,
-                onClick = { onTabSelected(0) },
+                onClick = { navController.navigate(RootNavDestinations.Home) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color(0xFF6C5CE7),
                     unselectedIconColor = Color.Gray,
@@ -72,7 +73,7 @@ fun CustomBottomNavigationBar(
                     )
                 },
                 selected = selectedTab == 1,
-                onClick = { onTabSelected(1) },
+                onClick = { navController.navigate(RootNavDestinations.Overview)},
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color(0xFF6C5CE7),
                     unselectedIconColor = Color.Gray,
@@ -141,7 +142,7 @@ fun CustomBottomNavigationBar(
             AddTransactionDialog(
                 onDismiss = { showDialog = false },
                 onSave = { expense ->
-                    homeViewModel.addExpense(expense)  // <-- Save to DB
+                    onEvent(HomeContract.Event.AddExpense(expense))  // <-- go through event system
                     showDialog = false
                 }
             )
