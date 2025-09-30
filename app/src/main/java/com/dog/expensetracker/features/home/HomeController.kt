@@ -1,28 +1,25 @@
 package com.dog.expensetracker.features.home
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.dog.expensetracker.ui.global.GlobalContract
+import com.dog.expensetracker.ui.global.GlobalViewModel
 import kotlinx.coroutines.flow.collectLatest
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.navigation.NavHostController
-import com.dog.expensetracker.navigation.LocalRootNavigator
 
 @Composable
 fun HomeController(
-    viewModel: HomeViewModel = hiltViewModel(),
+    viewModel: GlobalViewModel = hiltViewModel(),
     // optional nav param: use your app nav controller pattern
 ) {
     val state by viewModel.state.collectAsState()
-    val navController = LocalRootNavigator.current // or pass navController in
     // Collect one-off actions
     LaunchedEffect(Unit) {
         viewModel.action.collectLatest { action ->
             when (action) {
-                is HomeContract.Action.ShowMessage -> {
-                }
-                is HomeContract.Action.NavigateToOverview -> {
-                    // navController.navigate("overview") OR typed navigation
+                is GlobalContract.Action.ShowMessage -> {
                 }
             }
         }

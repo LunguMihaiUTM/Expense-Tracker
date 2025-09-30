@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,43 +33,36 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dog.expensetracker.ui.common.CustomBottomNavigationBar
 import com.dog.expensetracker.ui.common.TransactionSection
+import com.dog.expensetracker.ui.global.GlobalContract
 
 
 @Composable
 fun HomeScreen(
-    state: HomeContract.State,
-    onEvent: (HomeContract.Event) -> Unit
+    state: GlobalContract.State,
+    onEvent: (GlobalContract.Event) -> Unit
 ) {
-    Scaffold(
-        bottomBar = {
-            CustomBottomNavigationBar (
-                onEvent = onEvent
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp, vertical = 15.dp),
-            verticalArrangement = Arrangement.spacedBy(40.dp)
-        ) {
-            TopBar()
-            BalanceCard(state)
-            TransactionSection(
-                expenses = state.expenses,
-                numOfTransaction = 5,
-                onDeleteClick = {expense ->
-                    onEvent(HomeContract.Event.DeleteExpense(expense))
-                })
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 15.dp),
+        verticalArrangement = Arrangement.spacedBy(40.dp)
+    ) {
+        TopBar()
+        BalanceCard(state)
+        TransactionSection(
+            expenses = state.expenses,
+            numOfTransaction = 5,
+            onDeleteClick = { expense ->
+                onEvent(GlobalContract.Event.DeleteExpense(expense))
+            }
+        )
     }
+
 }
 
 @Composable
-private fun BalanceHeader(state: HomeContract.State) {
+private fun BalanceHeader(state: GlobalContract.State) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -101,7 +93,7 @@ private fun BalanceHeader(state: HomeContract.State) {
 }
 
 @Composable
-private fun IncomeExpenseRow(state: HomeContract.State) {
+private fun IncomeExpenseRow(state: GlobalContract.State) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -147,7 +139,7 @@ private fun TopBar() {
 }
 
 @Composable
-private fun BalanceCard(state: HomeContract.State) {
+private fun BalanceCard(state: GlobalContract.State) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
