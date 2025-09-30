@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,10 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.dog.expensetracker.data.local.ExpenseCategory
-import com.dog.expensetracker.features.home.HomeContract
-import com.dog.expensetracker.ui.common.CustomBottomNavigationBar
 import com.dog.expensetracker.ui.common.TransactionSection
 import kotlin.math.PI
 import kotlin.math.min
@@ -47,43 +43,33 @@ import kotlin.math.min
 fun OverviewScreen(
     state: OverviewContract.State,
     onEvent: (OverviewContract.Event) -> Unit,
-    navController: NavHostController
 ) {
-    Scaffold(
-        bottomBar = {
-            CustomBottomNavigationBar {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 15.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        OverviewTopBar()
+        OverviewSummaryCards(state)
 
+        ExpensePieChart(
+            totalsByCategory = state.totalsByCategory,
+            chartSize = 150.dp,
+            ringThickness = 20.dp,
+            state = state
+        )
+
+        TransactionSection(
+            expenses = state.expenses,
+            numOfTransaction = -1,
+            onDeleteClick = { expense ->
+                onEvent(OverviewContract.Event.DeleteExpense(expense))
             }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp, vertical = 15.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            OverviewTopBar()
-            OverviewSummaryCards(state)
-
-            ExpensePieChart(
-                totalsByCategory = state.totalsByCategory,
-                chartSize = 150.dp,
-                ringThickness = 20.dp,
-                state = state
-            )
-
-            TransactionSection(
-                expenses = state.expenses,
-                numOfTransaction = -1,
-                onDeleteClick = { expense ->
-                    onEvent(OverviewContract.Event.DeleteExpense(expense))
-                }
-            )
-        }
+        )
     }
-}
 
+}
 
 
 @Composable
@@ -474,7 +460,6 @@ fun ExpenseChartLegend(
         }
     }
 }
-
 
 
 //@Preview(showBackground = true)

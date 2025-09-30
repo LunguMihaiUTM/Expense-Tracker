@@ -77,6 +77,7 @@ class OverviewViewModel @Inject constructor(
 
             is OverviewContract.Event.AddExpense -> {
                 repository.insertExpense(event.expense)
+
                 sendAction(OverviewContract.Action.ShowMessage("Expense added"))
             }
 
