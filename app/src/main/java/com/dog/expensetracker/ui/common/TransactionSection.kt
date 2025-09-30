@@ -121,7 +121,7 @@ fun TransactionItem(
                 modifier = Modifier
                     .size(50.dp)
                     .background(
-                        color = category.color.copy(alpha = 0.2f),
+                        color = Color.LightGray.copy(0.3f),
                         shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
