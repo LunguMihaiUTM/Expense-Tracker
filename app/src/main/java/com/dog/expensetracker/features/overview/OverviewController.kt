@@ -1,18 +1,17 @@
 package com.dog.expensetracker.features.overview
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
-import androidx.navigation.NavHostController
-import com.dog.expensetracker.navigation.LocalRootNavigator
 
 @Composable
 fun OverviewController(
     viewModel: OverviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val navController = LocalRootNavigator.current
 
     // collect one-off actions
     LaunchedEffect(Unit) {
@@ -28,6 +27,5 @@ fun OverviewController(
     OverviewScreen(
         state = state,
         onEvent = { viewModel.sendEvent(it) },
-        navController = navController
     )
 }

@@ -1,8 +1,8 @@
-package com.dog.expensetracker.features.home
+package com.dog.expensetracker.ui.global
 
 import com.dog.expensetracker.data.local.Expense
 
-interface HomeContract {
+interface GlobalContract {
     data class State(
         val isLoading: Boolean = true,
         val expenses: List<Expense> = emptyList(),
@@ -15,13 +15,12 @@ interface HomeContract {
     sealed interface Event {
         data object Initialize : Event
         data class AddExpense(val expense: Expense) : Event
-        data class DeleteExpense(val expense: Expense) : Event
+
         data object ToggleAddDialog : Event
-        data class ChangePeriod(val days: Int) : Event
+        data class DeleteExpense(val expense: Expense) : Event
     }
 
     sealed interface Action {
         data class ShowMessage(val message: String) : Action
-        data object NavigateToOverview : Action
     }
 }
